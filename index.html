@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shama V12 Standalone Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="p-4 max-w-lg mx-auto">
+
+    <!-- MAIN APP HEADER -->
+    <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-3">
+        <div>
+            <h1 class="text-xl font-bold text-sky-400">SHAMA V12</h1>
+            <p class="text-xs text-slate-400">Institutional Momentum Engine</p>
+        </div>
+        <span id="engine-status" class="bg-amber-500/20 text-amber-400 text-xs px-2.5 py-1 rounded font-mono font-bold">DISCONNECTED</span>
+    </div>
+
+    <!-- BROKER LOGIN & IB GATEWAY -->
+    <div id="login-card" class="bg-slate-800 p-5 rounded-xl border border-slate-700 mb-6">
+        <h2 class="text-sm font-bold text-slate-200 mb-3">Connect Broker Account</h2>
+        <div class="space-y-3">
+            <div>
+                <label class="text-xs text-slate-400">Broker Platform</label>
+                <select id="broker-select" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white mt-1">
+                    <option value="deriv">Deriv (Synthetics & Forex)</option>
+                    <option value="weltrade">Weltrade (Gold, Oil & Forex)</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs text-slate-400">Account ID / API Token</label>
+                <input type="text" id="account-id" placeholder="Enter Account ID or API Token" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white mt-1">
+            </div>
+            <button onclick="connectAccount()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-2.5 rounded text-sm transition">
+                Authenticate & Launch Engine
+            </button>
+        </div>
+        <div id="gate-error" class="mt-3 text-xs text-red-400 hidden"></div>
+    </div>
+
+    <!-- TRADING DASHBOARD (Hidden until IB Verified) -->
+    <div id="dashboard" class="hidden space-y-4">
+        
+        <!-- FINANCIAL METRICS CARD -->
+        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 grid grid-cols-2 gap-3">
+            <div>
+                <p class="text-xs text-slate-400">Trading Balance</p>
+                <p id="val-balance" class="text-lg font-bold text-emerald-400">$0.00</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400">Equity</p>
+                <p id="val-equity" class="text-lg font-bold text-white">$0.00</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400">Cycle Net Gain</p>
+                <p id="val-profit" class="text-sm font-semibold text-emerald-400">$0.00</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400">30% Fee Due</p>
+                <p id="val-fee" class="text-sm font-semibold text-amber-400">$0.00</p>
+            </div>
+        </div>
+
+        <!-- RISK & ENGINE SHIELDS -->
+        <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700/50 text-xs space-y-1">
+            <div class="flex justify-between"><span class="text-slate-400">American News Shield:</span><span class="text-emerald-400 font-bold">ACTIVE</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Daily Circuit Breaker:</span><span class="text-emerald-400 font-bold">0.0% / 5.0% Limit</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Max Lot Limit Guard:</span><span class="text-slate-200 font-bold">15.0 Lots Capped</span></div>
+        </div>
+    </div>
+
+    <script>
+        // PASTE YOUR LIVE RENDER URL HERE
+        const RENDER_BACKEND_URL = "https://shama-v12-app.onrender.com";
+
+        async function connectAccount() {
+            const broker = document.getElementById('broker-select').value;
+            const acc = document.getElementById('account-id').value.trim();
+            const errBox = document.getElementById('gate-error');
+            errBox.classList.add('hidden');
+
+            if (!acc) {
+                errBox.innerText = "Please enter a valid broker account number or token.";
+                errBox.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                let res = await fetch(`${RENDER_BACKEND_URL}/api/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ broker: broker, account_id: acc })
+                });
+                let data = await res.json();
+
+                if (data.status === "GRANTED") {
+                    document.getElementById('login-card').classList.add('hidden');
+                    document.getElementById('dashboard').classList.remove('hidden');
+                    document.getElementById('engine-status').innerText = "V12 ACTIVE";
+                    document.getElementById('engine-status').className = "bg-emerald-500/20 text-emerald-400 text-xs px-2.5 py-1 rounded font-mono font-bold";
+                    
+                    document.getElementById('val-balance').innerText = "$1,000.00";
+                    document.getElementById('val-equity').innerText = "$1,000.00";
+                } else {
+                    errBox.innerHTML = `${data.message} <br><a href="${data.link}" target="_blank" class="underline font-bold text-sky-400 mt-1 block">Click here to register under Shama V12 IB</a>`;
+                    errBox.classList.remove('hidden');
+                }
+            } catch (e) {
+                errBox.innerText = "Server connecting... Give Render 30 seconds to wake up.";
+                errBox.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

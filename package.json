@@ -1,14 +1,10 @@
 {
-  "name": "shama-v12-backend",
-  "version": "12.0.0",
-  "description": "Shama V12 Standalone Trading Engine",
+  "name": "shama-v12-platform",
+  "version": "12.1.0",
+  "private": true,
+  "description": "Shama V12 demo-first dashboard and authenticated MT5 status bridge",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "ws": "^8.13.0",
-    "cors": "^2.8.5"
-  }
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "express": "^4.21.2" }
 }

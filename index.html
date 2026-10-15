@@ -49,11 +49,11 @@
         <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 grid grid-cols-2 gap-3">
             <div>
                 <p class="text-xs text-slate-400">Trading Balance</p>
-                <p id="val-balance" class="text-lg font-bold text-emerald-400">$0.00</p>
+                <p id="val-balance" class="text-lg font-bold text-emerald-400">$1,000.00</p>
             </div>
             <div>
                 <p class="text-xs text-slate-400">Equity</p>
-                <p id="val-equity" class="text-lg font-bold text-white">$0.00</p>
+                <p id="val-equity" class="text-lg font-bold text-white">$1,000.00</p>
             </div>
             <div>
                 <p class="text-xs text-slate-400">Cycle Net Gain</p>
@@ -74,14 +74,15 @@
     </div>
 
     <script>
-        // PASTE YOUR LIVE RENDER URL HERE
-        const RENDER_BACKEND_URL = "https://shama-v12-app.onrender.com";
+        // Authorized IB Verification References
+        const AUTHORIZED_IDS = ["CX86467", "64Q5CKJJZBKS"];
+        const IB_REFERRAL_LINK = "https://track.deriv.com/_your_ib_ref_link_here"; // Replace or use default
 
-        async function connectAccount() {
-            const broker = document.getElementById('broker-select').value;
+        function connectAccount() {
             const acc = document.getElementById('account-id').value.trim();
             const errBox = document.getElementById('gate-error');
             errBox.classList.add('hidden');
+            errBox.innerHTML = "";
 
             if (!acc) {
                 errBox.innerText = "Please enter a valid broker account number or token.";
@@ -89,28 +90,20 @@
                 return;
             }
 
-            try {
-                let res = await fetch(`${RENDER_BACKEND_URL}/api/verify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ broker: broker, account_id: acc })
-                });
-                let data = await res.json();
-
-                if (data.status === "GRANTED") {
-                    document.getElementById('login-card').classList.add('hidden');
-                    document.getElementById('dashboard').classList.remove('hidden');
-                    document.getElementById('engine-status').innerText = "V12 ACTIVE";
-                    document.getElementById('engine-status').className = "bg-emerald-500/20 text-emerald-400 text-xs px-2.5 py-1 rounded font-mono font-bold";
-                    
-                    document.getElementById('val-balance').innerText = "$1,000.00";
-                    document.getElementById('val-equity').innerText = "$1,000.00";
-                } else {
-                    errBox.innerHTML = `${data.message} <br><a href="${data.link}" target="_blank" class="underline font-bold text-sky-400 mt-1 block">Click here to register under Shama V12 IB</a>`;
-                    errBox.classList.remove('hidden');
-                }
-            } catch (e) {
-                errBox.innerText = "Server connecting... Give Render 30 seconds to wake up.";
+            // Check against authorized IB IDs
+            if (AUTHORIZED_IDS.includes(acc)) {
+                // SUCCESS: Unlock Dashboard
+                document.getElementById('login-card').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('engine-status').innerText = "V12 ACTIVE";
+                document.getElementById('engine-status').className = "bg-emerald-500/20 text-emerald-400 text-xs px-2.5 py-1 rounded font-mono font-bold";
+            } else {
+                // REJECTION: Block & Display IB Referral Link
+                errBox.innerHTML = `
+                    <span class="font-bold text-red-400">Access Denied: Account ID not linked under Shama V12 IB partner network.</span><br>
+                    <span class="text-slate-300 mt-1 block">Please register using our official IB partner link to unlock the trading engine:</span>
+                    <a href="https://track.deriv.com/" target="_blank" class="underline font-bold text-sky-400 mt-1 block">Register under IB Ref: CX86467 / 64Q5CKJJZBKS</a>
+                `;
                 errBox.classList.remove('hidden');
             }
         }
